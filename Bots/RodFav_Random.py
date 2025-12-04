@@ -2,7 +2,6 @@ from Bots.ChessBotList import register_chess_bot
 import time
 import random
 
-
 def get_move_king(y,x,board):
     possible_positions = []
 
@@ -78,13 +77,51 @@ def get_move_king(y,x,board):
         elif board[posy][posx][1] != board[y][x][1]:
             possible_positions.append((posy,posx))
 
-    print(possible_positions)
     return possible_positions
 
 def get_move_queen(y,x,board):
     possible_positions = []
 
     ## Cardinales 
+    #Haut
+    for i in range(1, len(board)-y):
+        if board[y+i,x] == '':
+            possible_positions.append((y+i,x))
+        elif board[y,x][1] != board[y+i,x][1]:
+            possible_positions.append((y+i,x))
+            break
+        else:
+            break
+    
+    #Droite
+    for i in range(1, x+1):
+        if board[y,x-i] == '':
+            possible_positions.append((y,x-i))
+        elif board[y,x][1] != board[y,x-i][1]:
+            possible_positions.append((y,x-i))
+            break
+        else:
+            break
+    
+    #Bas
+    for i in range(1, y+1):
+        if board[y-i,x] == '':
+            possible_positions.append((y-i,x))
+        elif board[y,x][1] != board[y-i,x][1]:
+            possible_positions.append((y-i,x))
+            break
+        else:
+            break
+    
+    #Gauche
+    for i in range(1, len(board)-x):
+        if board[y,x+i] == '':
+            possible_positions.append((y,x+i))
+        elif board[y,x][1] != board[y,x+i][1]:
+            possible_positions.append((y,x+i))
+            break
+        else:
+            break
 
     ## Diagonale
     #Direction en haut a gauche
@@ -132,6 +169,75 @@ def get_move_queen(y,x,board):
 
 def get_move_knight(y,x,board):
     possible_positions = []
+
+    # en haut a gauche
+    posy = y + 1
+    posx = x + 2
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    posy = y + 2
+    posx = x + 1
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    # en haut a droite
+    posy = y - 1
+    posx = x + 2
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+    
+    posy = y + 2
+    posx = x - 1
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    # en bas a gauche
+    posy = y - 2
+    posx = x + 1
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    posy = y + 1    
+    posx = x - 2
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    # en bas a droite
+    posy = y - 1
+    posx = x - 2
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
+    posy = y - 2
+    posx = x - 1
+    if posx < len(board[0]) and posy < len(board) and posx > 0 and posy > 0:
+        if board[posy][posx] == '':
+            possible_positions.append((posy,posx))
+        elif board[posy][posx][1] != board[y][x][1]:
+            possible_positions.append((posy,posx))
+
 
     return possible_positions
 
@@ -224,7 +330,6 @@ def get_move_rook(y,x,board):
         else:
             break
 
-    print(possible_positions)
     return possible_positions
 
 def get_move_pawn(y,x,board):
@@ -290,4 +395,4 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
         if (time.time() - start_time >= time_budget - 0.1):
             return current_best_move
         
-register_chess_bot("RodFav", chess_bot)
+register_chess_bot("RodFav_Random", chess_bot)
