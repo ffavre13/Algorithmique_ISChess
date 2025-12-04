@@ -2,29 +2,77 @@ from Bots.ChessBotList import register_chess_bot
 import time
 import random
 
-def get_all_possible_moves(play_sequence, board):
+
+def get_move_king(y,x,board):
+    possible_positions = []
+    return possible_positions
+
+def get_move_queen(y,x,board):
+    possible_positions = []
+    return possible_positions
+
+def get_move_knight(y,x,board):
+    possible_positions = []
+    return possible_positions
+
+def get_move_bishop(y,x,board):
+    possible_positions = []
+    return possible_positions
+
+def get_move_rook(y,x,board):
+    possible_positions = []
+    return possible_positions
+
+def get_move_pawn(y,x,board):
+    possible_positions = []
+
+    try:
+        if board[y+1][x] == '':
+            possible_positions.append((y+1,x))
+    except:
+        pass
+
+    try:
+        if board[y+1][x+1] != '':
+            possible_positions.append((y+1,x+1))
+    except:
+        pass
+
+    try:
+        if board[y+1][x-1] != '':
+            possible_positions.append((y+1,x-1))
+    except:
+        pass
+
+    return possible_positions
+
+def get_all_possible_moves(player_sequence, board):
     moves = []
+    current_player = player_sequence[1]
 
-    print(play_sequence)
-    print(board)
-
-    moves.append(((1,0),(2,0)))
-    moves.append(((1,1),(2,1)))
-    moves.append(((1,2),(2,2)))
-    moves.append(((1,3),(2,3)))
-    moves.append(((1,4),(2,4)))
-    moves.append(((1,5),(2,5)))
-    moves.append(((1,6),(2,6)))
-    moves.append(((1,7),(2,7)))
-
-    moves.append(((0,0),(1,0)))
-    moves.append(((0,1),(1,1)))
-    moves.append(((0,2),(1,2)))
-    moves.append(((0,3),(1,3)))
-    moves.append(((0,4),(1,4)))
-    moves.append(((0,5),(1,5)))
-    moves.append(((0,6),(1,6)))
-    moves.append(((0,7),(1,7)))
+    for i in range(len(board)):
+        for j in range(len(board[0])):
+            if board[i][j] != '':
+                if board[i][j].string()[1] == current_player:
+                    match board[i][j].string()[0]:
+                        case "k":
+                            for position in get_move_king(i,j,board):
+                                moves.append(((i,j),position))
+                        case "q":
+                            for position in get_move_queen(i,j,board):
+                                moves.append(((i,j),position))
+                        case "n":
+                            for position in get_move_knight(i,j,board):
+                                moves.append(((i,j),position))
+                        case "b":
+                            for position in get_move_bishop(i,j,board):
+                                moves.append(((i,j),position))
+                        case "r":
+                            for position in get_move_rook(i,j,board):
+                                moves.append(((i,j),position))
+                        case "p":
+                            for position in get_move_pawn(i,j,board):
+                                moves.append(((i,j),position))
 
     return moves
 
