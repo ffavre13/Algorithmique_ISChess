@@ -33,13 +33,13 @@ def get_move_pawn(y,x,board):
         pass
 
     try:
-        if board[y+1][x+1] != '':
+        if board[y+1][x+1] != '' and board[y+1][x-1][1] != board[y][x][1]:
             possible_positions.append((y+1,x+1))
     except:
         pass
 
     try:
-        if board[y+1][x-1] != '':
+        if board[y+1][x-1] != '' and board[y+1][x-1][1] != board[y][x][1]:
             possible_positions.append((y+1,x-1))
     except:
         pass
