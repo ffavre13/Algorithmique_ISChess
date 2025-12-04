@@ -183,6 +183,48 @@ def get_move_bishop(y,x,board):
 
 def get_move_rook(y,x,board):
     possible_positions = []
+
+    #Haut
+    for i in range(1, len(board)-y):
+        if board[y+i,x] == '':
+            possible_positions.append((y+i,x))
+        elif board[y,x][1] != board[y+i,x][1]:
+            possible_positions.append((y+i,x))
+            break
+        else:
+            break
+    
+    #Droite
+    for i in range(1, x+1):
+        if board[y,x-i] == '':
+            possible_positions.append((y,x-i))
+        elif board[y,x][1] != board[y,x-i][1]:
+            possible_positions.append((y,x-i))
+            break
+        else:
+            break
+    
+    #Bas
+    for i in range(1, y+1):
+        if board[y-i,x] == '':
+            possible_positions.append((y-i,x))
+        elif board[y,x][1] != board[y-i,x][1]:
+            possible_positions.append((y-i,x))
+            break
+        else:
+            break
+    
+    #Gauche
+    for i in range(1, len(board)-x):
+        if board[y,x+i] == '':
+            possible_positions.append((y,x+i))
+        elif board[y,x][1] != board[y,x+i][1]:
+            possible_positions.append((y,x+i))
+            break
+        else:
+            break
+
+    print(possible_positions)
     return possible_positions
 
 def get_move_pawn(y,x,board):
