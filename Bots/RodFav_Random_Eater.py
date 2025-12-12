@@ -435,4 +435,4 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
         if (time.time() - start_time >= time_budget - 0.1):
             return current_best_move
         
-register_chess_bot("RodFav_Random", chess_bot)
+register_chess_bot("RodFav_Random_Eat", chess_bot)
