@@ -130,7 +130,26 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         other_player_sequence = "0w0"
 
-    best_move = get_best_move(board,3,player_sequence,other_player_sequence, time_budget, start_time)
+    piece_count = 0
+    for i in board:
+        for j in i:
+            if j != '':
+                piece_count += value_piece[j[0]]
+    
+    print(piece_count)
+
+    if piece_count >= 50:
+        depth = 3
+    elif piece_count >= 40:
+        depth = 4
+    elif piece_count >= 30:
+        depth = 5
+    elif piece_count >= 20:
+        depth = 6
+    elif piece_count >= 10:
+        depth = 7
+
+    best_move = get_best_move(board,depth,player_sequence,other_player_sequence, time_budget, start_time)
     return best_move
 
 register_chess_bot("RodFav_Simple_MiniMax", chess_bot)
