@@ -2,6 +2,7 @@ from Bots.ChessBotList import register_chess_bot
 from Bots.Piece_movement import all_move_piece
 import time
 import copy 
+import numpy as np
 
 value_piece = {
     "p": 1,
@@ -9,7 +10,7 @@ value_piece = {
     "b": 3,
     "r": 5,
     "q": 9,
-    "k":1000,
+    "k": 0,
 }
 
 def get_all_possible_moves(player_sequence, board):
@@ -18,7 +19,7 @@ def get_all_possible_moves(player_sequence, board):
     all_move = []
 
     for y in range(len(board)):
-        for x in range(len(board[0])):
+        for x in range(len(board[y])):
             if board[y][x] != '' and board[y][x][1] == current_player:
                 moves = all_move_piece(y, x, board)
 
@@ -58,7 +59,13 @@ def evaluate(board, player_sequence):
 
 
 def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequence):
-    if depth == 0 or winner(board) != None:
+    win = winner(board)
+    if win == player_sequence[1]:
+        return float('inf')
+    elif win == other_player_sequence[1]:
+        return -float('inf')
+
+    if depth == 0:
         return evaluate(board, player_sequence)
     
     if maximizingplayer:
@@ -69,8 +76,12 @@ def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequen
             new_board = copy.deepcopy(board)
             new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
             new_board[move[0][0]][move[0][1]] = ''
+
+            new_board = np.rot90(new_board, 2)
+
             score = minimax(new_board, depth-1, False, player_sequence, other_player_sequence)
             current_max = max(current_max, score)
+
         return current_max
     else:
         current_min = float('inf')
@@ -80,8 +91,12 @@ def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequen
             new_board = copy.deepcopy(board)
             new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
             new_board[move[0][0]][move[0][1]] = ''
+
+            new_board = np.rot90(new_board, 2)
+
             score = minimax(new_board, depth-1, True, player_sequence, other_player_sequence)
             current_min = min(current_min, score)
+
         return current_min
 
 def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
@@ -92,6 +107,8 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
         new_board = copy.deepcopy(board)
         new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
         new_board[move[0][0]][move[0][1]] = ''
+
+        new_board = np.rot90(new_board, 2)
 
         score = minimax(new_board, depth-1, False, player_sequence, other_player_sequence)
 
@@ -105,7 +122,6 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
     return best_move
 
 def chess_bot(player_sequence, board, time_budget, **kwargs):
-
     start_time = time.time()
 
     other_player_sequence = ""
@@ -114,7 +130,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         other_player_sequence = "0w0"
 
-    best_move = get_best_move(board,5,player_sequence,other_player_sequence, time_budget, start_time)
+    best_move = get_best_move(board,3,player_sequence,other_player_sequence, time_budget, start_time)
     return best_move
 
 register_chess_bot("RodFav_Simple_MiniMax", chess_bot)
