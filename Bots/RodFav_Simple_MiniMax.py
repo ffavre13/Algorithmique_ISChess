@@ -22,7 +22,6 @@ def get_all_possible_moves(player_sequence, board):
         for x in range(len(board[y])):
             if board[y][x] != '' and board[y][x][1] == current_player:
                 moves = all_move_piece(y, x, board)
-
                 for i in moves:
                     all_move.append(((y,x), i))
 
@@ -40,10 +39,8 @@ def winner(board):
     
     if not has_white: 
         return "b" 
-    
     if not has_black: 
         return "w" 
-    
     return None
 
 def evaluate(board, player_sequence):
@@ -57,8 +54,10 @@ def evaluate(board, player_sequence):
                     score -= value_piece[board[i][j][0]]
     return score
 
+def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+    if time.time() - start_time >= time_budget - 0.1:
+        return evaluate(board, player_sequence)
 
-def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequence):
     win = winner(board)
     if win == player_sequence[1]:
         return float('inf')
@@ -76,10 +75,9 @@ def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequen
             new_board = copy.deepcopy(board)
             new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
             new_board[move[0][0]][move[0][1]] = ''
-
             new_board = np.rot90(new_board, 2)
 
-            score = minimax(new_board, depth-1, False, player_sequence, other_player_sequence)
+            score = minimax(new_board, depth-1, False, player_sequence, other_player_sequence, start_time, time_budget)
             current_max = max(current_max, score)
 
         return current_max
@@ -91,33 +89,33 @@ def minimax(board, depth, maximizingplayer, player_sequence, other_player_sequen
             new_board = copy.deepcopy(board)
             new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
             new_board[move[0][0]][move[0][1]] = ''
-
             new_board = np.rot90(new_board, 2)
 
-            score = minimax(new_board, depth-1, True, player_sequence, other_player_sequence)
+            score = minimax(new_board, depth-1, True, player_sequence, other_player_sequence, start_time, time_budget)
             current_min = min(current_min, score)
 
         return current_min
 
 def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
-    best_score = -float('inf')
-    best_move = None
+    moves = get_all_possible_moves(player_sequence, board)
 
-    for move in get_all_possible_moves(player_sequence, board):
+    best_score = -float('inf')
+    best_move = moves[0]
+
+    for move in moves:
+        if time.time() - start_time >= time_budget - 0.1:
+            break
+
         new_board = copy.deepcopy(board)
         new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
         new_board[move[0][0]][move[0][1]] = ''
-
         new_board = np.rot90(new_board, 2)
-
-        score = minimax(new_board, depth-1, False, player_sequence, other_player_sequence)
+        
+        score = minimax(new_board, depth - 1, False, player_sequence, other_player_sequence, start_time, time_budget)
 
         if score > best_score:
             best_score = score
             best_move = move
-
-        if (time.time() - start_time >= time_budget - 0.2):
-            return best_move
 
     return best_move
 
@@ -136,20 +134,16 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
             if j != '':
                 piece_count += value_piece[j[0]]
     
-    print(piece_count)
-
-    if piece_count >= 50:
+    if piece_count >= 40:
         depth = 3
-    elif piece_count >= 40:
-        depth = 4
     elif piece_count >= 30:
-        depth = 5
+        depth = 4
     elif piece_count >= 20:
-        depth = 6
-    elif piece_count >= 10:
-        depth = 7
+        depth = 5
+    else:
+        depth = 5
 
-    best_move = get_best_move(board,depth,player_sequence,other_player_sequence, time_budget, start_time)
+    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
     return best_move
 
 register_chess_bot("RodFav_Simple_MiniMax", chess_bot)

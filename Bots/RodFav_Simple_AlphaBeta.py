@@ -58,8 +58,9 @@ def evaluate(board, player_sequence):
     return score
 
 
-def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence):
-    
+def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+    if time.time() - start_time >= time_budget - 0.1:
+        return evaluate(board, player_sequence)
     win = winner(board)
     if win == player_sequence[1]:
         return float('inf')
@@ -80,7 +81,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
 
             new_board = np.rot90(new_board, 2)
 
-            score = minimax(new_board, depth-1, alpha, beta, False, player_sequence, other_player_sequence)
+            score = minimax(new_board, depth-1, alpha, beta, False, player_sequence, other_player_sequence, start_time, time_budget)
             current_max = max(current_max, score)
             alpha = max(alpha, score)
 
@@ -99,7 +100,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
 
             new_board = np.rot90(new_board, 2)
 
-            score = minimax(new_board, depth-1, alpha, beta, True, player_sequence, other_player_sequence)
+            score = minimax(new_board, depth-1, alpha, beta, True, player_sequence, other_player_sequence, start_time, time_budget)
             current_min = min(current_min, score)
             beta = min(beta, score)
             if beta <= alpha:
@@ -108,19 +109,24 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
         return current_min
 
 def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
+    moves = get_all_possible_moves(player_sequence, board)
+    
     best_score = -float('inf')
-    best_move = None
+    best_move = moves[0]
     alpha = -float('inf')
     beta = float('inf')
 
-    for move in get_all_possible_moves(player_sequence, board):
+    for move in moves:
+        if time.time() - start_time >= time_budget - 0.1:
+            break
+
         new_board = copy.deepcopy(board)
         new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
         new_board[move[0][0]][move[0][1]] = ''
 
         new_board = np.rot90(new_board, 2)
 
-        score = minimax(new_board, depth-1, alpha, beta, False, player_sequence, other_player_sequence)
+        score = minimax(new_board, depth-1, alpha, beta, False, player_sequence, other_player_sequence,start_time, time_budget)
 
         if score > best_score:
             best_score = score
@@ -143,7 +149,22 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         other_player_sequence = "0w0"
 
-    best_move = get_best_move(board,5, player_sequence,other_player_sequence, time_budget, start_time)
+    piece_count = 0
+    for i in board:
+        for j in i:
+            if j != '':
+                piece_count += value_piece[j[0]]
+    
+    if piece_count >= 40:
+        depth = 5
+    elif piece_count >= 30:
+        depth = 6
+    elif piece_count >= 20:
+        depth = 7
+    else:
+        depth = 8
+
+    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
     return best_move
 
 register_chess_bot("RodFav_Simple_AlphaBeta", chess_bot)
