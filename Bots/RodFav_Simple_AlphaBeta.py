@@ -61,11 +61,6 @@ def evaluate(board, player_sequence):
 def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
-    win = winner(board)
-    if win == player_sequence[1]:
-        return float('inf')
-    elif win == other_player_sequence[1]:
-        return -float('inf')
     
     if depth == 0:
         return evaluate(board, player_sequence)
@@ -76,8 +71,23 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
 
         for move in moves:
             new_board = copy.deepcopy(board)
-            new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
-            new_board[move[0][0]][move[0][1]] = ''
+
+            if new_board[move[1][0]][move[1][1]] == 'k'+str(other_player_sequence[1]):
+                score = 10000 + depth
+                current_max = max(current_max, score)
+                alpha = max(alpha, score)
+
+                if beta <= alpha:
+                    break
+                
+                continue
+            
+            if move[1][0] == 7 and new_board[move[0][0]][move[0][1]] == 'p'+str(player_sequence[1]):
+                new_board[move[1][0]][move[1][1]] = 'q'+str(player_sequence[1])
+                new_board[move[0][0]][move[0][1]] = ''
+            else:
+                new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
+                new_board[move[0][0]][move[0][1]] = ''
 
             new_board = np.rot90(new_board, 2)
 
@@ -95,8 +105,21 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
 
         for move in moves:
             new_board = copy.deepcopy(board)
-            new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
-            new_board[move[0][0]][move[0][1]] = ''
+
+            if new_board[move[1][0]][move[1][1]] == 'k'+str(player_sequence[1]):
+                score = -10000 - depth
+                current_min = min(current_min, score)
+                beta = min(beta, score)
+                if beta <= alpha:
+                    break
+                continue
+            
+            if move[1][0] == 7 and new_board[move[0][0]][move[0][1]] == 'p'+str(other_player_sequence[1]):
+                new_board[move[1][0]][move[1][1]] = 'q'+str(other_player_sequence[1])
+                new_board[move[0][0]][move[0][1]] = ''
+            else:
+                new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
+                new_board[move[0][0]][move[0][1]] = ''
 
             new_board = np.rot90(new_board, 2)
 
@@ -121,8 +144,23 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
             break
 
         new_board = copy.deepcopy(board)
-        new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
-        new_board[move[0][0]][move[0][1]] = ''
+
+        if new_board[move[1][0]][move[1][1]] == 'k'+str(other_player_sequence[1]):
+            score = 10000 + depth
+
+            if score > best_score:
+                best_score = score
+                best_move = move
+
+            alpha = max(alpha, score)
+            continue
+        
+        if move[1][0] == 7 and new_board[move[0][0]][move[0][1]] == 'p'+str(player_sequence[1]):
+            new_board[move[1][0]][move[1][1]] = 'q'+str(player_sequence[1])
+            new_board[move[0][0]][move[0][1]] = ''
+        else:
+            new_board[move[1][0]][move[1][1]] = new_board[move[0][0]][move[0][1]]
+            new_board[move[0][0]][move[0][1]] = ''
 
         new_board = np.rot90(new_board, 2)
 
@@ -134,14 +172,13 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
 
         alpha = max(alpha, score)
 
-        if (time.time() - start_time >= time_budget - 0.2):
-            return best_move
-
     return best_move
 
 def chess_bot(player_sequence, board, time_budget, **kwargs):
 
     start_time = time.time()
+
+    depth = 3
 
     other_player_sequence = ""
     if player_sequence == "0w0":
