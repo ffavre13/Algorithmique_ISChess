@@ -164,13 +164,13 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
         for j in i:
             if j != '':
                 piece_count += value_piece[j[0]]
-
+    
     if piece_count >= 40:
         depth = 3
     elif piece_count >= 30:
-        depth = 4
+        depth = 3
     elif piece_count >= 20:
-        depth = 5
+        depth = 4
     else:
         depth = 5
 

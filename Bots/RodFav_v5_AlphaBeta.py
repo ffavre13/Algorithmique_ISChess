@@ -193,13 +193,13 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
                 piece_count += value_piece[j[0]]
     
     if piece_count >= 40:
-        depth = 5
+        depth = 3
     elif piece_count >= 30:
-        depth = 6
+        depth = 3
     elif piece_count >= 20:
-        depth = 7
+        depth = 4
     else:
-        depth = 8
+        depth = 5
 
     best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
     return best_move

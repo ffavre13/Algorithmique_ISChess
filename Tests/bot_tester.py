@@ -36,17 +36,23 @@ class BoardManager:
             print(" | ".join([c if c else "  " for c in row]))
         print("\n" + "-"*30 + "\n")
 
-def play_game(player1, player2, board_manager, max_rounds=10):
+def play_game(player1, player2, board_manager, max_rounds=10, reflection_time=1):
     board = np.copy(board_manager.board)
     result = [0,0,0,0] # player1_win, player2_win, draws, nb_round
+    time_player1 = []
+    time_player2 = []
     for round_num in range(max_rounds):
-            # BoardManager.print_board(board)
+
             result[3] += 1
-            move1 = player1("0w0", board, 1)
+            start_time = time.time()
+
+            move1 = player1("0w0", board, reflection_time)
+            
+            time_player1.append(time.time()-start_time)
 
             if board[move1[1][0]][move1[1][1]] == 'kb':
                 result[0] += 1
-                return result
+                return result, time_player1, time_player2
             
             if move1[1][0] == 7 and board[move1[0][0]][move1[0][1]] == 'pw':
                 board[move1[1][0]][move1[1][1]] = 'qw'
@@ -56,12 +62,16 @@ def play_game(player1, player2, board_manager, max_rounds=10):
                 board[move1[0][0]][move1[0][1]] = ''
 
             board = np.rot90(board, 2)
-            move2 = player2("0b0", board, 1)
 
+            start_time = time.time()
+
+            move2 = player2("0b0", board, reflection_time)
+
+            time_player2.append(time.time()-start_time)
             
             if board[move2[1][0]][move2[1][1]]  == 'kw':
                 result[1] += 1
-                return result
+                return result, time_player1, time_player2
             
             if move2[1][0] == 7 and board[move2[0][0]][move2[0][1]] == 'pb':
                 board[move2[1][0]][move2[1][1]] = 'qb'
@@ -72,7 +82,7 @@ def play_game(player1, player2, board_manager, max_rounds=10):
             board = np.rot90(board, 2)
         
     result[2] += 1
-    return result
+    return result, time_player1, time_player2
 
 def main():
     all_bots = []
@@ -91,6 +101,7 @@ def main():
     player2 = all_bots[player2_id]
     max_nb_round = int(input("Enter the maximum number of round per game: "))
     nb_games =  int(input("Enter the number of game to play: "))
+    reflection_time = int(input("Enter the reflection time: "))
 
     number = int(time.time())
 
@@ -100,6 +111,9 @@ def main():
         'draws': 0
     }
 
+    time_player1 = []
+    time_player2 = []
+
     board_manager = BoardManager()
 
     with open(f"Tests/data/{all_bots_name[player1_id]}_vs_{str(all_bots_name[player2_id])}_{number}.csv", 'w', newline='') as csvfile:
@@ -107,10 +121,12 @@ def main():
         filewriter.writerow(['game_number','player1_win','player2_win','draw','nb_round'])
 
     for game_num in range(nb_games):
-        current_result = play_game(player1, player2, board_manager, max_nb_round)
+        current_result, current_time_player1, current_time_player2 = play_game(player1, player2, board_manager, max_nb_round, reflection_time)
         results['player1_wins'] += current_result[0]
         results['player2_wins'] += current_result[1]
         results['draws'] += current_result[2]
+        time_player1.append(sum(current_time_player1)/(len(current_time_player1)))
+        time_player2.append(sum(current_time_player2)/(len(current_time_player2)))
 
         with open(f"Tests/data/{all_bots_name[player1_id]}_vs_{str(all_bots_name[player2_id])}_{number}.csv", 'a', newline='') as csvfile:
             filewriter = csv.writer(csvfile, delimiter=';')
@@ -123,6 +139,8 @@ def main():
     print(f"player2 (Black): {results['player2_wins']} wins")
     print(f"Draws: {results['draws']}")
     print(f"Total games: {nb_games}")
+    print(f"Average time for player1 (White) to play a move: {sum(time_player1)/len(time_player1)}")
+    print(f"Average time for player2 (Black) to play a move: {sum(time_player2)/len(time_player2)}")
     print(f"{'='*60}")
 
     plt.bar([f"{all_bots_name[player1_id]}",f"{str(all_bots_name[player2_id])}",'draws'],[results['player1_wins'],results['player2_wins'],results['draws']])
