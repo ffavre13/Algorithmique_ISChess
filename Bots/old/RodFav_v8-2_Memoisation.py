@@ -11,8 +11,8 @@ value_piece = {
     "k": 0,
 }
 
-def board_to_hash(board):
-    return ''.join([''.join(row) for row in board])
+def board_to_hash(board, player_sequence):
+    return ''.join([''.join(row) for row in board]) + player_sequence
 
 def move_score(move, board):
     (y1, x1), (y2, x2) = move
@@ -88,12 +88,19 @@ def evaluate(board, player_sequence):
     return score
 
 
-def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget, positions):
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
-    
+
     if depth == 0:
-        return evaluate(board, player_sequence)
+        board_hash = board_to_hash(board, player_sequence if maximizingplayer else other_player_sequence)
+        if board_hash in positions:
+            return positions[board_hash]
+        
+        score = evaluate(board, player_sequence)
+        positions[board_hash] = score
+        return score
+    
     
     if maximizingplayer:
         current_max = -float('inf')
@@ -122,7 +129,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
                 board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
                 board[move[0][0]][move[0][1]] = ''
 
-            score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence, start_time, time_budget)
+            score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence, start_time, time_budget, positions)
             current_max = max(current_max, score)
             alpha = max(alpha, score)
 
@@ -157,7 +164,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
                 board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
                 board[move[0][0]][move[0][1]] = ''
 
-            score = minimax(board, depth-1, alpha, beta, True, player_sequence, other_player_sequence, start_time, time_budget)
+            score = minimax(board, depth-1, alpha, beta, True, player_sequence, other_player_sequence, start_time, time_budget, positions)
             current_min = min(current_min, score)
             beta = min(beta, score)
 
@@ -166,10 +173,10 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
 
             if beta <= alpha:
                 break
-
+        
         return current_min
 
-def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
+def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time, positions):
     moves = get_all_possible_moves(player_sequence, board)
     moves.sort(key=lambda m: move_score(m, board),reverse=True)
 
@@ -202,7 +209,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
             board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
             board[move[0][0]][move[0][1]] = ''
 
-        score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence,start_time, time_budget)
+        score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence,start_time, time_budget, positions)
 
         if score > best_score:
             best_score = score
@@ -218,6 +225,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
 def chess_bot(player_sequence, board, time_budget, **kwargs):
 
     start_time = time.time()
+    positions = {}
 
     depth = 3
 
@@ -242,7 +250,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         depth = 5
 
-    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
+    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time, positions)
     return best_move
 
-register_chess_bot("RodFav_BestEval", chess_bot)
+register_chess_bot("RodFav_Memoisation", chess_bot)

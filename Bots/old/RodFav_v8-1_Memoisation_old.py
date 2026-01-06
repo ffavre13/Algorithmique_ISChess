@@ -11,6 +11,8 @@ value_piece = {
     "k": 0,
 }
 
+positions = {}
+
 def board_to_hash(board, player_sequence):
     return ''.join([''.join(row) for row in board]) + player_sequence
 
@@ -81,11 +83,17 @@ def evaluate(board, player_sequence):
                 
                 val = val + 0.01 * len(moves) if len(moves) != 0 else val - 0.01
 
-                if color == player_sequence[1]:
-                    moves = all_move_piece(y,x,board)
-                else:
-                    moves = all_move_piece_reverse(y,x,board)
-                    val += 0.05 * len(moves)
+                # if piece == 'p':
+                #     if color == player_sequence[1]:
+                #         if y <= 6:
+                #             val += 0.1 * y
+                #         elif y == 7:
+                #             val += 8
+                #     else:
+                #         if y >= 1:
+                #             val += 0.1 * (7-y)
+                #         elif y == 0:
+                #             val += 8
 
                 if color == player_sequence[1]:
                     score += val
@@ -94,23 +102,37 @@ def evaluate(board, player_sequence):
     return score
 
 
-def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget, positions):
+def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
     
-    key = board_to_hash(board, player_sequence) if maximizingplayer else board_to_hash(board, other_player_sequence)
+    side = player_sequence if maximizingplayer else other_player_sequence
+    key = board_to_hash(board, side)
+
+    original_alpha = alpha
+    original_beta = beta
+    best = 0
+
     if key in positions:
-        stored_score, stored_depth = positions[key]
+        stored_score, stored_depth, flag = positions[key]
         if stored_depth >= depth:
-            return stored_score
+            if flag == "EXACT":
+                return stored_score
+            elif flag == "LOWER":
+                alpha = max(alpha, stored_score)
+            elif flag == "UPPER":
+                beta = min(beta, stored_score)
+
+            if alpha >= beta:
+                return stored_score
 
     if depth == 0:
         score = evaluate(board, player_sequence)
-        positions[key] = (score, depth)
+        positions[key] = (score, depth, "EXACT")
         return score
     
     if maximizingplayer:
-        current_max = -float('inf')
+        best = -float('inf')
         moves = get_all_possible_moves(player_sequence, board)
 
         moves.sort(key=lambda m: move_score(m, board),reverse=True)
@@ -118,7 +140,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
         for move in moves:
             if board[move[1][0]][move[1][1]] == 'k'+str(other_player_sequence[1]):
                 score = 10000 + depth
-                current_max = max(current_max, score)
+                best = max(best, score)
                 alpha = max(alpha, score)
 
                 if beta <= alpha:
@@ -136,8 +158,8 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
                 board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
                 board[move[0][0]][move[0][1]] = ''
 
-            score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence, start_time, time_budget, positions)
-            current_max = max(current_max, score)
+            score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence, start_time, time_budget)
+            best = max(best, score)
             alpha = max(alpha, score)
 
             board[move[1][0]][move[1][1]] = captured
@@ -146,17 +168,15 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
             if beta <= alpha:
                 break
 
-        positions[key] = (current_max, depth)
-        return current_max
     else:
-        current_min = float('inf')
+        best = float('inf')
         moves = get_all_possible_moves_reverse(other_player_sequence, board)
         moves.sort(key=lambda m: move_score(m, board),reverse=True)
 
         for move in moves:
             if board[move[1][0]][move[1][1]] == 'k'+str(player_sequence[1]):
                 score = -10000 - depth
-                current_min = min(current_min, score)
+                best = min(best, score)
                 beta = min(beta, score)
                 if beta <= alpha:
                     break
@@ -172,8 +192,10 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
                 board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
                 board[move[0][0]][move[0][1]] = ''
 
-            score = minimax(board, depth-1, alpha, beta, True, player_sequence, other_player_sequence, start_time, time_budget, positions)
-            current_min = min(current_min, score)
+            score = minimax(board, depth-1, alpha, beta, True, player_sequence, other_player_sequence, start_time, time_budget)
+
+            best = min(best, score)
+            
             beta = min(beta, score)
 
             board[move[1][0]][move[1][1]] = captured
@@ -182,10 +204,17 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
             if beta <= alpha:
                 break
 
-        positions[key] = (current_min, depth)
-        return current_min
+    if best <= original_alpha:
+        flag = "UPPER"
+    elif best >= original_beta:
+        flag = "LOWER"
+    else:
+        flag = "EXACT"
 
-def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time, positions):
+    positions[key] = (best, depth, flag)
+    return best
+
+def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
     moves = get_all_possible_moves(player_sequence, board)
     moves.sort(key=lambda m: move_score(m, board),reverse=True)
 
@@ -218,7 +247,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
             board[move[1][0]][move[1][1]] = board[move[0][0]][move[0][1]]
             board[move[0][0]][move[0][1]] = ''
 
-        score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence,start_time, time_budget, positions)
+        score = minimax(board, depth-1, alpha, beta, False, player_sequence, other_player_sequence,start_time, time_budget)
 
         if score > best_score:
             best_score = score
@@ -234,9 +263,9 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
 def chess_bot(player_sequence, board, time_budget, **kwargs):
 
     start_time = time.time()
-    positions = {}
-    
     depth = 3
+
+    positions.clear()
 
     other_player_sequence = ""
     if player_sequence == "0w0":
@@ -259,7 +288,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         depth = 5
 
-    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time, positions)
+    best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
     return best_move
 
-register_chess_bot("RodFav_Memoisation", chess_bot)
+# register_chess_bot("RodFav_Memoisation_old", chess_bot)

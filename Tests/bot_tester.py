@@ -125,8 +125,12 @@ def main():
         results['player1_wins'] += current_result[0]
         results['player2_wins'] += current_result[1]
         results['draws'] += current_result[2]
-        time_player1.append(sum(current_time_player1)/(len(current_time_player1)))
-        time_player2.append(sum(current_time_player2)/(len(current_time_player2)))
+
+        for e in current_time_player1:
+            time_player1.append(e)
+
+        for e in current_time_player2:
+            time_player2.append(e)
 
         with open(f"Tests/data/{all_bots_name[player1_id]}_vs_{str(all_bots_name[player2_id])}_{number}.csv", 'a', newline='') as csvfile:
             filewriter = csv.writer(csvfile, delimiter=';')
@@ -139,8 +143,8 @@ def main():
     print(f"player2 (Black): {results['player2_wins']} wins")
     print(f"Draws: {results['draws']}")
     print(f"Total games: {nb_games}")
-    print(f"Average time for player1 (White) to play a move: {sum(time_player1)/len(time_player1)}")
-    print(f"Average time for player2 (Black) to play a move: {sum(time_player2)/len(time_player2)}")
+    print(f"Average time for player1 (White) to play a move: {sum(time_player1)/len(time_player1)}, max: {max(time_player1)}, min: {min(time_player1)}")
+    print(f"Average time for player2 (Black) to play a move: {sum(time_player2)/len(time_player2)}, max: {max(time_player2)}, min: {min(time_player2)}")
     print(f"{'='*60}")
 
     plt.bar([f"{all_bots_name[player1_id]}",f"{str(all_bots_name[player2_id])}",'draws'],[results['player1_wins'],results['player2_wins'],results['draws']])
