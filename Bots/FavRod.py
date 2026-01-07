@@ -392,9 +392,9 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     number_of_states_visited.append(current_number)
 
     print("All number of states visited: ", number_of_states_visited)
-    print("Avg number of states visiteds: ", sum(number_of_states_visited)/len(number_of_states_visited))
-    print("Min number of states visiteds: ", min(number_of_states_visited))
-    print("Max number of states visiteds: ", max(number_of_states_visited))
+    print("Avg number of states visited: ", sum(number_of_states_visited)/len(number_of_states_visited))
+    print("Min number of states visited: ", min(number_of_states_visited))
+    print("Max number of states visited: ", max(number_of_states_visited))
 
     return best_move
 
