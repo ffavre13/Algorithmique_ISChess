@@ -10,6 +10,8 @@ value_piece = {
     "q": 9,
     "k": 0,
 }
+number_of_states_visited = []
+current_number = 0
 
 history = []
 history_size = 12
@@ -183,6 +185,10 @@ def evaluate(board, player_sequence):
 
 # Minimax algorithme
 def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+    global current_number
+
+    current_number += 1
+
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
     
@@ -344,7 +350,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
     return best_move
 
 def chess_bot(player_sequence, board, time_budget, **kwargs):
-    global history, last_move, history_size
+    global history, last_move, history_size, current_number, number_of_states_visited
     
     start_time = time.time()
 
@@ -353,6 +359,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     if len(history) > history_size:
         history.pop(0)
 
+    current_number = 0
     depth = 3
 
     other_player_sequence = ""
@@ -376,9 +383,18 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     else:
         depth = 7
 
+    depth = 4
+
     best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
 
     last_move = best_move
+
+    number_of_states_visited.append(current_number)
+
+    print("All number of states visited: ", number_of_states_visited)
+    print("Avg number of states visiteds: ", sum(number_of_states_visited)/len(number_of_states_visited))
+    print("Min number of states visiteds: ", min(number_of_states_visited))
+    print("Max number of states visiteds: ", max(number_of_states_visited))
 
     return best_move
 
