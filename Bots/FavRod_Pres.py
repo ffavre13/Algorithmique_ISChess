@@ -1,8 +1,7 @@
 from Bots.ChessBotList import register_chess_bot
-from Bots.FavRod_Piece_movement import all_move_piece, all_move_piece_reverse
+from Bots.Piece_movement import all_move_piece, all_move_piece_reverse
 import time
 
-# standar piece value for evaluate function
 value_piece = {
     "p": 1,
     "n": 3,
@@ -11,20 +10,14 @@ value_piece = {
     "q": 9,
     "k": 0,
 }
+number_of_states_visited = []
+current_number = 0
 
-# history to avoid repeating moves
 history = []
 history_size = 12
 last_move = None
 
 def board_to_hash(board, player_sequence):
-    """
-    Function to hash the board so that it can be stored in the history
-    
-    :param board: chess board to hash
-    :param player_sequence: Player who is currently playing
-    :return: A string containing the hashed board
-    """
     result = ""
     for row in board:
         for c in row:
@@ -37,14 +30,6 @@ def board_to_hash(board, player_sequence):
 
 # Heuristic for sorting moves
 def move_score(move, board, maximazing):
-    """
-    Calculates a heuristic score for a move in order to prioritise the best moves
-    
-    :param move: Current move we want to get the score
-    :param board: Chess board
-    :param maximazing: Tell us whether it's our move or the opponent's move.
-    """
-
     (y1, x1), (y2, x2) = move
     piece = board[y1][x1]
     target = board[y2][x2]
@@ -71,12 +56,6 @@ def move_score(move, board, maximazing):
 
 # Get all the oponent moves
 def get_all_possible_moves_reverse(player_sequence, board):
-    """
-    Generates a list of all possible moves for the opponent based on the board.
-
-    :param player_sequence: Player who is currently playing
-    :param board: Chess board
-    """
     current_player = player_sequence[1]
 
     all_move = []
@@ -206,6 +185,9 @@ def evaluate(board, player_sequence):
 
 # Minimax algorithme
 def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+    global current_number
+
+    current_number += 1
 
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
@@ -368,7 +350,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
     return best_move
 
 def chess_bot(player_sequence, board, time_budget, **kwargs):
-    global history, last_move, history_size
+    global history, last_move, history_size, current_number, number_of_states_visited
     
     start_time = time.time()
 
@@ -377,6 +359,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     if len(history) > history_size:
         history.pop(0)
 
+    current_number = 0
     depth = 3
 
     other_player_sequence = ""
@@ -403,6 +386,13 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
     best_move = get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time)
 
     last_move = best_move
+
+    number_of_states_visited.append(current_number)
+
+    print("All number of states visited: ", number_of_states_visited)
+    print("Avg number of states visited: ", sum(number_of_states_visited)/len(number_of_states_visited))
+    print("Min number of states visited: ", min(number_of_states_visited))
+    print("Max number of states visited: ", max(number_of_states_visited))
 
     return best_move
 
