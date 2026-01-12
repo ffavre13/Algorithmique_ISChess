@@ -25,6 +25,7 @@ def board_to_hash(board, player_sequence):
     :param player_sequence: Player who is currently playing
     :return: A string containing the hashed board
     """
+
     result = ""
     for row in board:
         for c in row:
@@ -43,6 +44,7 @@ def move_score(move, board, maximazing):
     :param move: Current move we want to get the score
     :param board: Chess board
     :param maximazing: Tell us whether it's our move or the opponent's move.
+    :return: returns the score of the move
     """
 
     (y1, x1), (y2, x2) = move
@@ -69,14 +71,16 @@ def move_score(move, board, maximazing):
 
     return score
 
-# Get all the oponent moves
+# Get all the opponent moves
 def get_all_possible_moves_reverse(player_sequence, board):
     """
     Generates a list of all possible moves for the opponent based on the board.
 
     :param player_sequence: Player who is currently playing
     :param board: Chess board
+    :return: return all possible moves
     """
+
     current_player = player_sequence[1]
 
     all_move = []
@@ -93,6 +97,14 @@ def get_all_possible_moves_reverse(player_sequence, board):
 
 # Get all current player moves
 def get_all_possible_moves(player_sequence, board):
+    """
+    Generates a list of all our possible moves based on the board.
+    
+    :param player_sequence: Player who is currently playing
+    :param board: Chess board
+    :return: return all possible moves
+    """
+
     current_player = player_sequence[1]
 
     all_move = []
@@ -109,6 +121,14 @@ def get_all_possible_moves(player_sequence, board):
 
 # Evaluate the board
 def evaluate(board, player_sequence):
+    """
+    Evaluates a chess position and returns a score. The score is positive if the position is favourable to the current player (player_sequence), negative otherwise.
+    
+    :param board: Chess board
+    :param player_sequence: Player who is currently playing
+    :return: return the score of the current position
+    """
+
     score = 0
 
     center_square = [(3,3),(3,4),(4,3),(4,4)]
@@ -118,6 +138,7 @@ def evaluate(board, player_sequence):
 
     king_oponent_position = None
 
+    # Obtaining the position of the opposing king and counting the value of the pieces on the board in order to decide whether or not it is the endgame.
     for y in range(len(board)):
         for x in range(len(board[y])):
             if board[y][x] != '':
@@ -135,6 +156,8 @@ def evaluate(board, player_sequence):
             if board[y][x] != '':
                 piece = board[y][x][0]
                 color = board[y][x][1]
+
+                # Calculate the value of the current piece
                 val = value_piece[piece]
 
                 # Bonus if the piece is in the center_square
@@ -206,20 +229,37 @@ def evaluate(board, player_sequence):
 
 # Minimax algorithme
 def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_player_sequence, start_time, time_budget):
+    """
+    Explore the tree of possible moves to determine the best move.
+    
+    :param board: chess board
+    :param depth: maximum search depth
+    :param alpha: best value found so far for the maximising player.
+    :param beta: best value found so far for the minimising player.
+    :param maximizingplayer: True if the player wants to maximise the score, false otherwise.
+    :param player_sequence: Player who is currently playing
+    :param other_player_sequence: Opponent player
+    :param start_time: Search start time
+    :param time_budget: max search time
+    :return: The best possible score with this board
+    """
 
+    # check if we are reaching the end of the time
     if time.time() - start_time >= time_budget - 0.1:
         return evaluate(board, player_sequence)
     
+    # returns the position score if it is a leaf
     if depth == 0:
         return evaluate(board, player_sequence)
     
     if maximizingplayer:
         current_max = -float('inf')
         moves = get_all_possible_moves(player_sequence, board)
-
         moves.sort(key=lambda m: move_score(m, board, True),reverse=True)
 
         for move in moves:
+
+            # Check if the move capture the opponent king
             if board[move[1][0]][move[1][1]] == 'k'+str(other_player_sequence[1]):
                 score = 10000 + depth
                 current_max = max(current_max, score)
@@ -233,6 +273,7 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
             captured = board[move[1][0]][move[1][1]]
             piece = board[move[0][0]][move[0][1]]
 
+            # Update the board with the current move
             if move[1][0] == 7 and board[move[0][0]][move[0][1]] == 'p'+str(player_sequence[1]):
                 board[move[1][0]][move[1][1]] = 'q'+str(player_sequence[1])
                 board[move[0][0]][move[0][1]] = ''
@@ -257,17 +298,22 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
         moves.sort(key=lambda m: move_score(m, board, False),reverse=True)
 
         for move in moves:
+
+            # Check if the move capture the opponent king
             if board[move[1][0]][move[1][1]] == 'k'+str(player_sequence[1]):
                 score = -10000 - depth
                 current_min = min(current_min, score)
                 beta = min(beta, score)
+
                 if beta <= alpha:
                     break
+
                 continue
             
             captured = board[move[1][0]][move[1][1]]
             piece = board[move[0][0]][move[0][1]]
-
+            
+            # Update the board with the current move
             if move[1][0] == 0 and board[move[0][0]][move[0][1]] == 'p'+str(other_player_sequence[1]):
                 board[move[1][0]][move[1][1]] = 'q'+str(other_player_sequence[1])
                 board[move[0][0]][move[0][1]] = ''
@@ -288,12 +334,25 @@ def minimax(board, depth, alpha, beta, maximizingplayer, player_sequence, other_
         return current_min
 
 def get_best_move(board, depth, player_sequence, other_player_sequence, time_budget, start_time):
+    """
+    Return the best possible move with this board
+
+    :param board: chess board
+    :param depth: maximum search depth
+    :param player_sequence: Player who is currently playing
+    :param other_player_sequence: Opponent player
+    :param time_budget: max search time
+    :param start_time: Search start time
+    :return: The best move with this board
+    """
     global last_move, history
 
     moves = get_all_possible_moves(player_sequence, board)
     moves.sort(key=lambda m: move_score(m, board, True),reverse=True)
 
     allowed_moves = []
+
+    # Calculate allowed moves based on the history to avoid repetition
     for move in moves:
         if last_move is not None:
             if move[0] == last_move[1] and move[1] == last_move[0]:
@@ -303,6 +362,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
         captured = board[y2][x2]
         piece = board[y1][x1]
 
+        # Update the board with the current move
         if y2 == 7 and board[y1][x1] == 'p'+str(player_sequence[1]):
             board[y2][x2] = 'q'+str(player_sequence[1])
             board[y1][x1] = ''
@@ -334,6 +394,7 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
         if time.time() - start_time >= time_budget - 0.1:
             break
 
+        # Check if the move capture the opponent king
         if board[move[1][0]][move[1][1]] == 'k'+str(other_player_sequence[1]):
             score = 10000 + depth
 
@@ -346,7 +407,8 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
 
         captured = board[move[1][0]][move[1][1]]
         piece = board[move[0][0]][move[0][1]]
-        
+
+        # Update the board with the current move
         if move[1][0] == 7 and board[move[0][0]][move[0][1]] == 'p'+str(player_sequence[1]):
             board[move[1][0]][move[1][1]] = 'q'+str(player_sequence[1])
             board[move[0][0]][move[0][1]] = ''
@@ -368,17 +430,31 @@ def get_best_move(board, depth, player_sequence, other_player_sequence, time_bud
     return best_move
 
 def chess_bot(player_sequence, board, time_budget, **kwargs):
+    """
+    Analyses the current position and returns the optimal move to play within the time limit.
+    
+    :param player_sequence: Player who is currently playing
+    :param board: Chess board
+    :param time_budget: max search time
+    :param kwargs: Others arguments
+    :return: the optimal move to play
+    """
+
     global history, last_move, history_size
     
     start_time = time.time()
 
+    # Add the current position to the history
     key = board_to_hash(board, player_sequence)
     history.append(key)
+
+    # Check if the history size is to large
     if len(history) > history_size:
         history.pop(0)
 
     depth = 3
 
+    # Calculate the other player sequence
     other_player_sequence = ""
     if player_sequence == "0w0":
         other_player_sequence = "1b2"
@@ -391,6 +467,7 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
             if j != '':
                 piece_count += value_piece[j[0]]
     
+    # Define the depth based on the number of pieces on the board.
     if piece_count >= 40:
         depth = 4
     elif piece_count >= 30:
