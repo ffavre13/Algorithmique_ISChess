@@ -396,4 +396,4 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
 
     return best_move
 
-register_chess_bot("FavRod", chess_bot)
+register_chess_bot("FavRod_Pres", chess_bot)

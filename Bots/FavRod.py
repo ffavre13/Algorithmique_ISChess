@@ -2,7 +2,7 @@ from Bots.ChessBotList import register_chess_bot
 from Bots.FavRod_Piece_movement import all_move_piece, all_move_piece_reverse
 import time
 
-# standar piece value for evaluate function
+# standard piece value for evaluate function
 value_piece = {
     "p": 1,
     "n": 3,
@@ -468,12 +468,8 @@ def chess_bot(player_sequence, board, time_budget, **kwargs):
                 piece_count += value_piece[j[0]]
     
     # Define the depth based on the number of pieces on the board.
-    if piece_count >= 40:
+    if piece_count >= 30:
         depth = 4
-    elif piece_count >= 30:
-        depth = 4
-    elif piece_count >= 20:
-        depth = 5
     else:
         depth = 5
 
